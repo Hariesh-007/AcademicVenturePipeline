@@ -1,0 +1,50 @@
+# Validation only (no deploy): every push to a branch other than main, plus PRs into main.
+# Stages: install (frozen lockfile) -> route types -> typecheck -> lint -> production build.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:  # a newer push to the same branch cancels the older run
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Typecheck, lint, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      # rewrites need a URL at build time; nothing is fetched from it during the build
+      API_URL: http://localhost:8000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4  # version comes from "packageManager" in package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install (lockfile must be up to date)
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate route types (PageProps / LayoutProps live in .next/types)
+        run: pnpm exec next typegen
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint
+        run: pnpm exec eslint .
+
+      - name: Production build
+        run: pnpm build
