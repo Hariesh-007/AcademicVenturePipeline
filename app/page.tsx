@@ -93,7 +93,7 @@ export default async function Landing() {
   return (
     <div className={s.page}>
       <noscript>
-        <style>{`[data-beat] *, [data-beat] *::after { animation: none !important; opacity: 1 !important; clip-path: none !important; transform: none !important; }`}</style>
+        <style>{`[data-beat], [data-beat] *, [data-beat] *::after { animation: none !important; opacity: 1 !important; clip-path: none !important; transform: none !important; }`}</style>
       </noscript>
 
       <nav className={s.nav}>
@@ -113,36 +113,43 @@ export default async function Landing() {
         <h1 className={s.heroLead}>
           <Lines
             lines={[
-              "The next great technology",
-              "may already be sitting",
-              <>
-                in an{" "}
-                <Term
-                  word="archive"
-                  tag="Institutional Repository"
-                  explainer="Unlicensed patents, published prototypes, and grant-funded university lab IP waiting for commercial validation."
-                />
-                .
-              </>,
+              "Turn overlooked university",
+              "research into",
+              "investment-ready evidence.",
             ]}
           />
         </h1>
+        <p className={s.heroAudience}>For technology-transfer teams, venture builders, and research investors.</p>
         <p className={s.heroSub}>
           <Lines
             from={3}
             lines={[
               <>
-                Turning archived research into{" "}
+                AVP validates university IP, maps the gaps, and prepares{" "}
                 <Term
-                  word="evidence-backed"
-                  tag="Verification"
-                  explainer="Every commercial claim is cross-referenced with lab trials, prior art, and market data."
+                  word="review-ready dossiers"
+                  tag="Evidence Dossier"
+                  explainer="Every commercial claim is cross-referenced with lab trials, prior art, and market data for a human reviewer."
                 />{" "}
-                ventures.
+                for commercial decisions.
               </>,
             ]}
           />
         </p>
+        <div className={s.heroActions}>
+          <a className={s.primary} href={`mailto:${DEMO_EMAIL}`}>See an evidence dossier in action</a>
+          {signedIn
+            ? <Link className={s.secondary} href="/app">Open your dashboard</Link>
+            : <a className={s.secondary} href="#workflow">Explore the workflow</a>}
+        </div>
+        <aside className={s.trust} aria-label="Pilot partners and product approach">
+          <p>Designed for evidence-led commercialisation</p>
+          <ul>
+            <li>Piloting with KL University</li>
+            <li>MNR University</li>
+            <li>SP heterocat lab, IITH</li>
+          </ul>
+        </aside>
         <Hero />
       </Beat>
 
@@ -180,7 +187,7 @@ export default async function Landing() {
       </Beat>
 
       {/* 3 — Patent → technology */}
-      <Beat className={s.wide}>
+      <Beat id="workflow" className={s.wide}>
         <SceneHead name="The discovery">One patent, read again, turns out to be a technology with a trail.</SceneHead>
         <Discovery />
       </Beat>
@@ -283,7 +290,7 @@ export default async function Landing() {
           <Lines from={3} lines={["Discover what is still possible."]} />
         </h2>
         <div className={s.actions}>
-          <a className={s.primary} href={`mailto:${DEMO_EMAIL}`}>Request a demo</a>
+          <a className={s.primary} href={`mailto:${DEMO_EMAIL}`}>Request a tailored demo</a>
           {signedIn
             ? <Link className={s.secondary} href="/app">Open your dashboard</Link>
             : <Link className={s.secondary} href="/signup">Become an analyser</Link>}

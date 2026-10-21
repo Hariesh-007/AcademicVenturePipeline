@@ -6,7 +6,7 @@ import s from "@/app/landing.module.css";
 
 // Must match the `.pin` media query in landing.module.css — CSS does the sticking, this only decides
 // whether scroll drives the scene or it renders its end state (mobile / reduced motion / SSR).
-const QUERY = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
+const QUERY = "(min-width: 900px) and (min-height: 820px) and (prefers-reduced-motion: no-preference)";
 // Hydration-safe media query: false on the server and the first client render, then live.
 export function useMedia(query: string) {
   return useSyncExternalStore(

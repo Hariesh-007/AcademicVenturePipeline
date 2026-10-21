@@ -17,6 +17,7 @@ export function GoldenWaveBackground() {
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const staticScene = reduce || coarse;
     const gl =
       canvas.getContext("webgl", {
         alpha: false,
@@ -33,7 +34,7 @@ export function GoldenWaveBackground() {
       }) as WebGLRenderingContext | null);
 
     if (!gl) {
-      return paintCanvasFallback(canvas, reduce);
+      return paintCanvasFallback(canvas, staticScene);
     }
 
     const vertSrc = `
@@ -84,7 +85,7 @@ export function GoldenWaveBackground() {
       float blob(vec2 p, vec2 c, float r) {
         vec2 d = p - c;
         float m = dot(d, d);
-        return (r * r) / (m + 0.0008);
+        return (r * r) / (m + 0.0007);
       }
 
       void main() {
@@ -96,81 +97,84 @@ export function GoldenWaveBackground() {
         p.x *= aspect;
 
         float t = u_time;
-        float scroll = u_scroll * 0.00022;
+        float scroll = u_scroll * 0.00028;
 
-        // Domain warp — the slow "breathing" that makes the map feel alive.
+        // Domain warp — multi-frequency breathing field
         vec2 warp = vec2(
-          fbm(p * 1.35 + vec2(t * 0.021, scroll)),
-          fbm(p * 1.35 + vec2(4.2, 1.7) - vec2(t * 0.017, -scroll))
+          fbm(p * 1.45 + vec2(t * 0.024, scroll)),
+          fbm(p * 1.45 + vec2(5.2, 2.1) - vec2(t * 0.019, -scroll))
         );
-        p += (warp - 0.5) * 0.22;
-        p += 0.045 * vec2(
-          sin(p.y * 2.6 + t * 0.11),
-          cos(p.x * 2.1 - t * 0.09)
+        p += (warp - 0.5) * 0.24;
+        p += 0.05 * vec2(
+          sin(p.y * 2.8 + t * 0.12),
+          cos(p.x * 2.3 - t * 0.10)
         );
 
         float field = 0.0;
 
-        // Five large lobes, each on a long elliptical orbit (Lando-style sparse islands).
-        field += blob(p, vec2(aspect * (0.22 + 0.10 * sin(t * 0.07 + 0.2)), 0.38 + 0.10 * cos(t * 0.055)), 0.34);
-        field += blob(p, vec2(aspect * (0.78 + 0.08 * cos(t * 0.05 + 1.1)), 0.62 + 0.11 * sin(t * 0.062)), 0.38);
-        field += blob(p, vec2(aspect * (0.52 + 0.14 * sin(t * 0.038)), 0.18 + 0.07 * cos(t * 0.048 + 0.8)), 0.26);
-        field += blob(p, vec2(aspect * (0.12 + 0.07 * cos(t * 0.044 + 2.2)), 0.82 + 0.06 * sin(t * 0.05)), 0.22);
-        field += blob(p, vec2(aspect * (0.88 + 0.06 * sin(t * 0.06 + 0.4)), 0.22 + 0.08 * cos(t * 0.041)), 0.20);
-        field += blob(p, vec2(aspect * (0.46 + 0.09 * cos(t * 0.033 + 1.7)), 0.78 + 0.09 * sin(t * 0.046)), 0.24);
+        // Dynamic fluid lobes across the canvas
+        field += blob(p, vec2(aspect * (0.22 + 0.11 * sin(t * 0.07 + 0.2)), 0.38 + 0.11 * cos(t * 0.055)), 0.36);
+        field += blob(p, vec2(aspect * (0.78 + 0.09 * cos(t * 0.05 + 1.1)), 0.62 + 0.12 * sin(t * 0.062)), 0.40);
+        field += blob(p, vec2(aspect * (0.52 + 0.15 * sin(t * 0.038)), 0.18 + 0.08 * cos(t * 0.048 + 0.8)), 0.28);
+        field += blob(p, vec2(aspect * (0.12 + 0.08 * cos(t * 0.044 + 2.2)), 0.82 + 0.07 * sin(t * 0.05)), 0.24);
+        field += blob(p, vec2(aspect * (0.88 + 0.07 * sin(t * 0.06 + 0.4)), 0.22 + 0.09 * cos(t * 0.041)), 0.22);
+        field += blob(p, vec2(aspect * (0.46 + 0.10 * cos(t * 0.033 + 1.7)), 0.78 + 0.10 * sin(t * 0.046)), 0.26);
 
-        // Cursor raises a local hill, then the isolines bloom around it.
+        // Cursor ripple & gravitational distortion
         vec2 m = u_mouse / u_res;
         m.x *= aspect;
         float md = length(p - m);
-        float hill = 0.42 * exp(-md * md * 14.0) * u_active;
+        float ripple = sin(md * 28.0 - t * 3.2) * exp(-md * 5.0) * 0.08 * u_active;
+        float hill = (0.46 * exp(-md * md * 12.0) + ripple) * u_active;
         field += hill;
 
-        // Midnight paper
-        vec3 deep = vec3(0.016, 0.035, 0.110);
-        vec3 mid  = vec3(0.031, 0.075, 0.239);
-        vec3 lift = vec3(0.055, 0.125, 0.376);
-        vec3 lobe = vec3(0.090, 0.145, 0.320);
-        vec3 inner = vec3(0.140, 0.125, 0.070);
-        vec3 gold = vec3(1.000, 0.843, 0.251);
-        vec3 champagne = vec3(0.94, 0.80, 0.42);
+        // Futuristic Palette: Deep Midnight Void + Luminous Amber Gold + Cyan Prismatic accents (Subdued, low-glare)
+        vec3 deep   = vec3(0.008, 0.016, 0.055);
+        vec3 mid    = vec3(0.018, 0.040, 0.130);
+        vec3 lift   = vec3(0.028, 0.065, 0.190);
+        vec3 lobe   = vec3(0.045, 0.080, 0.180);
+        vec3 cyan   = vec3(0.040, 0.220, 0.400);
+        vec3 gold   = vec3(0.850, 0.700, 0.220);
+        vec3 amber  = vec3(0.800, 0.520, 0.120);
+        vec3 champ  = vec3(0.750, 0.650, 0.420);
 
-        float paperN = fbm(uv * 2.4 + t * 0.01);
-        vec3 col = mix(deep, mid, uv.y * 0.55 + paperN * 0.12);
-        col = mix(col, lift, smoothstep(0.15, 0.85, uv.x * 0.35 + (1.0 - uv.y) * 0.4) * 0.35);
+        float paperN = fbm(uv * 2.6 + t * 0.012);
+        vec3 col = mix(deep, mid, uv.y * 0.50 + paperN * 0.10);
+        col = mix(col, lift, smoothstep(0.15, 0.85, uv.x * 0.35 + (1.0 - uv.y) * 0.35) * 0.25);
 
-        // Soft filled organic shapes (the cream blobs on Lando, recast as navy glass)
-        float fill = smoothstep(1.55, 2.35, field);
-        col = mix(col, lobe, fill * 0.72);
-        float core = smoothstep(3.1, 4.6, field);
-        col = mix(col, inner, core * 0.22);
+        // Soft filled organic glass masses (calm contrast)
+        float fill = smoothstep(1.55, 2.45, field);
+        col = mix(col, lobe, fill * 0.55);
 
-        // Nested topographic isolines — anti-aliased hairlines, thicker every 4th (index contour)
-        float iso = field * 1.65;
+        // Very subtle cyan edge tint
+        float fringe = smoothstep(2.35, 2.55, field) - smoothstep(2.55, 2.95, field);
+        col += cyan * max(0.0, fringe) * 0.10;
+
+        // Topographic isolines: very sparse and gentle
+        float iso = field * 0.45;
         float band = fract(iso);
-        float line = 1.0 - smoothstep(0.0, 0.045, abs(band - 0.5));
-        float indexBand = step(0.75, fract(iso * 0.25 + 0.02));
-        line = max(line, indexBand * (1.0 - smoothstep(0.0, 0.08, abs(band - 0.5))));
-        line *= smoothstep(1.15, 1.7, field);
-        line *= 0.55 + 0.45 * fill;
+        float line = 1.0 - smoothstep(0.0, 0.030, abs(band - 0.5));
+        line *= smoothstep(1.25, 1.80, field);
+        line *= 0.35 + 0.40 * fill;
 
-        // Traveling glint along the contours
-        float glint = pow(0.5 + 0.5 * sin(iso * 6.28318 - t * 0.85 + fbm(p * 3.0) * 8.0), 18.0);
-        vec3 lineCol = mix(champagne, gold, 0.45 + 0.55 * glint);
-        col = mix(col, lineCol, line * (0.42 + 0.38 * glint));
+        // Subtle specular glint
+        float glint = pow(0.5 + 0.5 * sin(iso * 6.28318 - t * 0.85 + fbm(p * 3.2) * 8.5), 18.0);
+        vec3 lineCol = mix(champ, mix(amber, gold, glint), 0.50 + 0.50 * glint);
+        col = mix(col, lineCol, line * (0.22 + 0.20 * glint));
 
-        // Cursor halo
-        float aura = exp(-md * md * 6.5) * u_active;
-        col += gold * aura * 0.07;
+        // Subdued interactive cursor halo
+        float aura = exp(-md * md * 6.0) * u_active;
+        col += mix(amber, gold, 0.5) * aura * 0.05;
+        col += cyan * exp(-md * md * 20.0) * u_active * 0.03;
 
-        // Vignette so type in the corners stays readable
+        // Cinematic vignette (deepens edges for focus & text contrast)
         vec2 vuv = uv * 2.0 - 1.0;
-        float vig = 1.0 - dot(vuv, vuv) * 0.22;
+        float vig = 1.0 - dot(vuv, vuv) * 0.32;
         col *= vig;
 
-        // Film grain
-        float g = hash(frag + vec2(fract(t * 13.7) * 47.0, fract(t * 8.3) * 19.0));
-        col += (g - 0.5) * 0.028;
+        // Micro film grain texture
+        float g = hash(frag + vec2(fract(t * 14.1) * 47.0, fract(t * 8.7) * 19.0));
+        col += (g - 0.5) * 0.026;
 
         gl_FragColor = vec4(col, 1.0);
       }
@@ -190,15 +194,15 @@ export function GoldenWaveBackground() {
 
     const vs = compile(gl.VERTEX_SHADER, vertSrc);
     const fs = compile(gl.FRAGMENT_SHADER, fragSrc);
-    if (!vs || !fs) return paintCanvasFallback(canvas, reduce);
+    if (!vs || !fs) return paintCanvasFallback(canvas, staticScene);
 
     const program = gl.createProgram();
-    if (!program) return paintCanvasFallback(canvas, reduce);
+    if (!program) return paintCanvasFallback(canvas, staticScene);
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      return paintCanvasFallback(canvas, reduce);
+      return paintCanvasFallback(canvas, staticScene);
     }
     gl.useProgram(program);
 
@@ -221,7 +225,7 @@ export function GoldenWaveBackground() {
     let tScroll = 0;
     let dpr = 1;
     let raf = 0;
-    let start = performance.now();
+    const start = performance.now();
     let running = true;
 
     const quality = coarse || window.innerWidth < 720 ? 0 : 1;
@@ -265,7 +269,7 @@ export function GoldenWaveBackground() {
 
     const draw = (now: number) => {
       if (!running) return;
-      const time = reduce ? 8.4 : (now - start) / 1000;
+      const time = staticScene ? 8.4 : (now - start) / 1000;
 
       mouse.x += (mouse.tx - mouse.x) * 0.075;
       mouse.y += (mouse.ty - mouse.y) * 0.075;
@@ -287,23 +291,25 @@ export function GoldenWaveBackground() {
         wrap.style.setProperty("--ma", String(0.12 * mouse.active));
       }
 
-      if (!reduce) raf = requestAnimationFrame(draw);
+      if (!staticScene) raf = requestAnimationFrame(draw);
     };
 
     const onVis = () => {
       if (document.hidden) {
         cancelAnimationFrame(raf);
-      } else if (!reduce) {
+      } else if (!staticScene) {
         raf = requestAnimationFrame(draw);
       }
     };
 
     window.addEventListener("resize", resize, { passive: true });
-    window.addEventListener("mousemove", onMove, { passive: true });
-    window.addEventListener("touchmove", onTouch, { passive: true });
-    window.addEventListener("mouseleave", onLeave);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    document.addEventListener("visibilitychange", onVis);
+    if (!staticScene) {
+      window.addEventListener("mousemove", onMove, { passive: true });
+      window.addEventListener("touchmove", onTouch, { passive: true });
+      window.addEventListener("mouseleave", onLeave);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      document.addEventListener("visibilitychange", onVis);
+    }
 
     raf = requestAnimationFrame(draw);
 
@@ -311,11 +317,13 @@ export function GoldenWaveBackground() {
       running = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("touchmove", onTouch);
-      window.removeEventListener("mouseleave", onLeave);
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("visibilitychange", onVis);
+      if (!staticScene) {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("touchmove", onTouch);
+        window.removeEventListener("mouseleave", onLeave);
+        window.removeEventListener("scroll", onScroll);
+        document.removeEventListener("visibilitychange", onVis);
+      }
       gl.deleteProgram(program);
       gl.deleteShader(vs);
       gl.deleteShader(fs);
@@ -340,7 +348,7 @@ export function GoldenWaveBackground() {
   );
 }
 
-function paintCanvasFallback(canvas: HTMLCanvasElement, reduce: boolean) {
+function paintCanvasFallback(canvas: HTMLCanvasElement, staticScene: boolean) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
@@ -360,7 +368,7 @@ function paintCanvasFallback(canvas: HTMLCanvasElement, reduce: boolean) {
   };
 
   const render = () => {
-    t += reduce ? 0 : 0.012;
+    t += staticScene ? 0 : 0.012;
     mouse.x += (mouse.tx - mouse.x) * 0.08;
     mouse.y += (mouse.ty - mouse.y) * 0.08;
 
@@ -387,11 +395,11 @@ function paintCanvasFallback(canvas: HTMLCanvasElement, reduce: boolean) {
       ctx.arc(cx, cy, b.r, 0, Math.PI * 2);
       ctx.fill();
 
-      for (let k = 1; k <= 4; k++) {
+      for (let k = 1; k <= 2; k++) {
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(255, 215, 64, ${0.08 + k * 0.03})`;
-        ctx.lineWidth = k === 4 ? 1.2 : 0.8;
-        const rr = b.r * (0.35 + k * 0.16);
+        ctx.strokeStyle = `rgba(255, 215, 64, ${0.07 + k * 0.03})`;
+        ctx.lineWidth = k === 2 ? 1.0 : 0.7;
+        const rr = b.r * (0.45 + k * 0.22);
         const wobble = 10 + i * 4;
         for (let a = 0; a <= 64; a++) {
           const th = (a / 64) * Math.PI * 2;
@@ -414,7 +422,7 @@ function paintCanvasFallback(canvas: HTMLCanvasElement, reduce: boolean) {
       ctx.fillRect(0, 0, width, height);
     }
 
-    if (!reduce) raf = requestAnimationFrame(render);
+    if (!staticScene) raf = requestAnimationFrame(render);
   };
 
   const onMove = (e: MouseEvent) => {
@@ -426,11 +434,11 @@ function paintCanvasFallback(canvas: HTMLCanvasElement, reduce: boolean) {
   resize();
   render();
   window.addEventListener("resize", resize, { passive: true });
-  window.addEventListener("mousemove", onMove, { passive: true });
+  if (!staticScene) window.addEventListener("mousemove", onMove, { passive: true });
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener("resize", resize);
-    window.removeEventListener("mousemove", onMove);
+    if (!staticScene) window.removeEventListener("mousemove", onMove);
   };
 }

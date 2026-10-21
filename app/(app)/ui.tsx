@@ -1,24 +1,29 @@
 // Small shared pieces for app pages. Styling lives in globals.css (.btn, .panel, .chip ...).
 import Link from "next/link";
+import { Reveal } from "@/app/ui/motion/Reveal";
 
 export function PageHeader({ title, lede, actions }: { title: string; lede?: string; actions?: React.ReactNode }) {
   return (
-    <header className="app-page-header mb-8 flex flex-wrap items-end justify-between gap-4 page-enter">
-      <div className="max-w-[68ch]">
-        <h1 className="font-serif text-[30px] leading-[1.15] tracking-[-0.01em]">{title}</h1>
-        {lede && <p className="mt-2 text-[15px] text-ink-2">{lede}</p>}
-      </div>
-      {actions && <div className="flex gap-2">{actions}</div>}
-    </header>
+    <Reveal className="app-page-header mb-8">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-[68ch]">
+          <h1 className="font-serif text-[30px] leading-[1.15] tracking-[-0.01em]">{title}</h1>
+          {lede && <p className="mt-2 text-[15px] text-ink-2">{lede}</p>}
+        </div>
+        {actions && <div className="flex gap-2">{actions}</div>}
+      </header>
+    </Reveal>
   );
 }
 
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="fade-up rounded-[10px] border border-dashed border-rule-strong px-6 py-12 text-center">
-      <p className="font-serif text-[20px]">{title}</p>
-      {children && <div className="mx-auto mt-2 max-w-[52ch] text-[14px] text-ink-2">{children}</div>}
-    </div>
+    <Reveal>
+      <div className="rounded-[10px] border border-dashed border-rule-strong px-6 py-12 text-center">
+        <p className="font-serif text-[20px]">{title}</p>
+        {children && <div className="mx-auto mt-2 max-w-[52ch] text-[14px] text-ink-2">{children}</div>}
+      </div>
+    </Reveal>
   );
 }
 

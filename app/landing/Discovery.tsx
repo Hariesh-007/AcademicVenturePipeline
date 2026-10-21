@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useInView } from "motion/react";
 import s from "@/app/landing.module.css";
 import { useReduced } from "./Pinned";
 import { DISCOVERY_LINKS, TECH } from "./data";
+import { SpotlightCard } from "@/app/SpotlightCard";
 
 const W = 560;
 const H = 360;
@@ -26,26 +27,32 @@ export default function Discovery() {
         animate={on ? { x: 0, opacity: 1 } : undefined}
         transition={t(0)}
       >
-        <p className={s.kicker}>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={on ? "tech" : "patent"}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={t(on ? 0.6 : 0)}
-              className={on ? s.blue : undefined}
-            >
-              {on ? "Technology" : "Patent"}
-            </motion.span>
-          </AnimatePresence>
-        </p>
-        <h3 className={s.docTitle}>{TECH.name}</h3>
-        <p className={s.ref}>{TECH.ref}</p>
-        <p className={s.claim}>
-          1. A catalyst composition comprising copper and zinc oxide on a modified support, wherein&hellip;
-        </p>
-        <p className={s.ref}>Illustrative example</p>
+        <SpotlightCard
+          spotlightColor="rgba(255, 215, 0, 0.20)"
+          spotlightRadius={340}
+          className="rounded-[inherit]"
+        >
+          <p className={s.kicker}>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={on ? "tech" : "patent"}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={t(on ? 0.6 : 0)}
+                className={on ? s.blue : undefined}
+              >
+                {on ? "Technology" : "Patent"}
+              </motion.span>
+            </AnimatePresence>
+          </p>
+          <h3 className={s.docTitle}>{TECH.name}</h3>
+          <p className={s.ref}>{TECH.ref}</p>
+          <p className={s.claim}>
+            1. A catalyst composition comprising copper and zinc oxide on a modified support, wherein&hellip;
+          </p>
+          <p className={s.ref}>Illustrative example</p>
+        </SpotlightCard>
       </motion.article>
 
       <svg className={s.fan} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Connected to: ${DISCOVERY_LINKS.join(", ")}`}>

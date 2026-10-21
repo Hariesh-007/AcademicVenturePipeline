@@ -6,6 +6,7 @@ import { Avatar } from "@/app/_profile/Avatar";
 import { TierBadge, tierLabel } from "@/app/_profile/Credibility";
 import { label, ORG_TYPES } from "@/app/_profile/meta";
 import { PublicFrame } from "@/app/_profile/PublicFrame";
+import { Stagger, StaggerItem } from "@/app/ui/motion/Stagger";
 
 export const metadata: Metadata = {
   title: "Analysts · AVP",
@@ -54,10 +55,10 @@ export default async function AnalystsPage({ searchParams }: PageProps<"/analyst
           </p>
         </div>
       ) : (
-        <ul className="mt-10 grid gap-x-8 gap-y-2 md:grid-cols-2">
+        <Stagger as="ul" className="mt-10 grid gap-x-8 gap-y-2 md:grid-cols-2">
           {people.map((p) => (
-            <li key={p.handle}>
-              <Link href={`/a/${p.handle}`} className="group flex gap-4 rounded-[10px] p-3 -mx-3 hover:bg-surface">
+            <StaggerItem as="li" key={p.handle}>
+              <Link href={`/a/${p.handle}`} className="group -mx-3 flex gap-4 rounded-[10px] border border-transparent p-3 transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-rule hover:bg-surface hover:shadow-[0_12px_30px_-24px_rgb(10_16_51/0.6)] focus-visible:border-blue focus-visible:outline-none">
                 <Avatar name={p.name} url={p.avatar_url} seed={p.handle} size={56} />
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 font-serif text-[19px] leading-tight">
@@ -71,9 +72,9 @@ export default async function AnalystsPage({ searchParams }: PageProps<"/analyst
                   </p>
                 </div>
               </Link>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       )}
     </PublicFrame>
   );

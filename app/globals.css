@@ -97,6 +97,34 @@ body {
   min-height: 100vh;
 }
 
+.app-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(40rem circle at 7% 10%, rgba(255, 215, 0, 0.055), transparent 52%),
+    radial-gradient(34rem circle at 92% 78%, rgba(38, 122, 255, 0.085), transparent 58%);
+  animation: ambientDrift 18s ease-in-out infinite alternate;
+}
+.app-ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(rgba(255, 215, 0, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 215, 0, 0.18) 1px, transparent 1px);
+  background-position: 0 0;
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 76% 58% at 50% 12%, #000 0%, transparent 74%);
+  animation: ambientGridDrift 28s linear infinite;
+}
+@keyframes ambientGridDrift {
+  to { background-position: 72px 72px; }
+}
+
 /* Paper-fibre overlay on the topographic WebGL field (Lando-style grain). */
 .topo-grain {
   position: fixed;
@@ -130,14 +158,24 @@ body {
     animation-duration: 0ms !important;
     animation-iteration-count: 1 !important;
   }
-  .scroll-reveal {
+  .motion-reveal, .motion-stagger-item {
     opacity: 1 !important;
     transform: none !important;
-    transition: none !important;
   }
   ::view-transition-old(*),
   ::view-transition-new(*),
   ::view-transition-group(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
+}
+
+.mobile-nav summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -4px;
+}
+.mobile-nav-content { transform-origin: top; }
+.mobile-nav[open] .mobile-nav-content { animation: mobile-nav-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes mobile-nav-enter {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* --- primitives (kept as classes so pages read as content, not utility soup) ----------------- */
@@ -187,6 +225,8 @@ body {
   }
 
   .panel {
+    position: relative;
+    isolation: isolate;
     background: var(--surface);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -194,6 +234,17 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 20px -2px rgba(6, 12, 32, 0.15);
     transition: border-color var(--duration-fast) var(--ease-subtle), box-shadow var(--duration-fast) var(--ease-subtle), transform var(--duration-fast) var(--ease-subtle);
+  }
+  .panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: var(--card-glow, 0);
+    background: radial-gradient(360px circle at var(--card-x, 50%) var(--card-y, 50%), rgba(255, 215, 0, 0.12), transparent 72%);
+    transition: opacity 240ms ease;
   }
 
   /* Interactive card lift feedback */
@@ -277,42 +328,10 @@ body {
     animation: routeFade var(--duration-smooth) var(--ease-out) both;
   }
 
-  /* --- Scroll reveals for .panel and .app-page-header within #main --- */
-  .scroll-reveal {
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity var(--duration-smooth) var(--ease-out), transform var(--duration-smooth) var(--ease-out);
-    will-change: opacity, transform;
-  }
-  .scroll-reveal.revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
   /* --- page entrance animation --- */
   .page-enter {
     animation: pageEnter 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
-
-  /* --- staggered list items --- */
-  .stagger-item {
-    opacity: 0;
-    animation: itemEnter 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-  /* items 1-12 */
-  .stagger-item:nth-child(1)  { animation-delay:  30ms; }
-  .stagger-item:nth-child(2)  { animation-delay:  60ms; }
-  .stagger-item:nth-child(3)  { animation-delay:  90ms; }
-  .stagger-item:nth-child(4)  { animation-delay: 120ms; }
-  .stagger-item:nth-child(5)  { animation-delay: 150ms; }
-  .stagger-item:nth-child(6)  { animation-delay: 180ms; }
-  .stagger-item:nth-child(7)  { animation-delay: 210ms; }
-  .stagger-item:nth-child(8)  { animation-delay: 240ms; }
-  .stagger-item:nth-child(9)  { animation-delay: 270ms; }
-  .stagger-item:nth-child(10) { animation-delay: 300ms; }
-  .stagger-item:nth-child(11) { animation-delay: 320ms; }
-  .stagger-item:nth-child(12) { animation-delay: 340ms; }
-  .stagger-item:nth-child(n+13) { animation-delay: 360ms; }
 
   /* --- fade-up utility (for sections, cards) --- */
   .fade-up {
@@ -343,16 +362,15 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---- staggered list item enter ---- */
-@keyframes itemEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 /* ---- generic fade+rise utility ---- */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ambientDrift {
+  from { transform: scale(1) translate3d(-1%, -1%, 0); opacity: 0.7; }
+  to { transform: scale(1.08) translate3d(1.5%, 1%, 0); opacity: 1; }
 }
 
 /* ===== View Transitions (React 19 / Next 16) ============================= */

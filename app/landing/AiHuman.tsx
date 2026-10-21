@@ -30,11 +30,22 @@ export default function AiHuman() {
       role="img"
       aria-label="AI organises, categorises and synthesises evidence, then hands a draft to people, who review, challenge, interpret, validate and make the decision."
     >
+      <defs>
+        <radialGradient id="aiGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(255, 215, 0, 0.4)" />
+          <stop offset="100%" stopColor="rgba(255, 215, 0, 0)" />
+        </radialGradient>
+        <radialGradient id="decideGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(252, 165, 25, 0.5)" />
+          <stop offset="100%" stopColor="rgba(252, 165, 25, 0)" />
+        </radialGradient>
+      </defs>
+
       <text x="0" y="18" className={s.svgCap}>AI layer</text>
       <text x="0" y={HU_Y - 42} className={s.svgCap}>Human layer</text>
 
       {/* AI lane */}
-      <line x1="20" y1={AI_Y} x2={aiX(2)} y2={AI_Y} stroke="var(--blue)" strokeWidth="1" />
+      <line x1="20" y1={AI_Y} x2={aiX(2)} y2={AI_Y} stroke="var(--blue)" strokeWidth="1.5" strokeOpacity="0.5" />
       {/* the travelling pulse: a short dash moving along the lane, twice, then it stops */}
       {!reduce && (
         <motion.path
@@ -49,7 +60,8 @@ export default function AiHuman() {
       )}
       {AI.map((label, n) => (
         <g key={label}>
-          <circle cx={aiX(n)} cy={AI_Y} r="7" fill="#fff" stroke="var(--blue)" strokeWidth="1.5" />
+          <circle cx={aiX(n)} cy={AI_Y} r="14" fill="url(#aiGlow)" />
+          <circle cx={aiX(n)} cy={AI_Y} r="6" fill="#08102d" stroke="var(--blue)" strokeWidth="1.5" />
           <text x={aiX(n)} y={AI_Y + 30} textAnchor="middle" className={s.svgLabel}>{label}</text>
         </g>
       ))}
@@ -58,17 +70,18 @@ export default function AiHuman() {
       <motion.path
         d={HANDOFF}
         fill="none"
-        stroke="var(--ink)"
-        strokeWidth="1"
+        stroke="var(--orange)"
+        strokeWidth="1.5"
         strokeDasharray="4 4"
         initial={{ opacity: 0 }}
-        animate={on ? { opacity: 1 } : undefined}
+        animate={on ? { opacity: 0.85 } : undefined}
         transition={t(1.4, 0.5)}
       />
       <motion.text
         x="420"
         y={(AI_Y + HU_Y) / 2 + 4}
         className={s.svgCap}
+        fill="var(--orange)"
         initial={{ opacity: 0 }}
         animate={on ? { opacity: 1 } : undefined}
         transition={t(1.5, 0.4)}
@@ -84,19 +97,21 @@ export default function AiHuman() {
         y2={HU_Y}
         stroke="var(--ink)"
         strokeWidth="1.5"
+        strokeOpacity="0.7"
         initial={{ pathLength: 0 }}
         animate={on ? { pathLength: 1 } : undefined}
         transition={t(1.8, 0.9)}
       />
       {HUMAN.map((label, n) => (
         <motion.g key={label} initial={{ opacity: 0 }} animate={on ? { opacity: 1 } : undefined} transition={t(1.8 + n * 0.18, 0.3)}>
-          <circle cx={huX(n)} cy={HU_Y} r="7" fill="#fff" stroke="var(--ink)" strokeWidth="1.5" />
+          <circle cx={huX(n)} cy={HU_Y} r="6" fill="#08102d" stroke="var(--ink)" strokeWidth="1.5" />
           <text x={huX(n)} y={HU_Y + 30} textAnchor="middle" className={s.svgLabel}>{label}</text>
         </motion.g>
       ))}
       <motion.g initial={{ opacity: 0 }} animate={on ? { opacity: 1 } : undefined} transition={t(2.6, 0.4)}>
-        <circle cx={DECIDE_X} cy={HU_Y} r="12" fill="var(--ink)" />
-        <circle cx={DECIDE_X} cy={HU_Y} r="18" fill="none" stroke="var(--orange)" strokeWidth="2" />
+        <circle cx={DECIDE_X} cy={HU_Y} r="28" fill="url(#decideGlow)" />
+        <circle cx={DECIDE_X} cy={HU_Y} r="12" fill="#0a1236" stroke="var(--orange)" strokeWidth="1.5" />
+        <circle cx={DECIDE_X} cy={HU_Y} r="19" fill="none" stroke="var(--orange)" strokeWidth="2" strokeDasharray="3 3" />
         <text x={DECIDE_X} y={HU_Y + 42} textAnchor="middle" className={s.svgStrong}>Decide</text>
       </motion.g>
     </svg>

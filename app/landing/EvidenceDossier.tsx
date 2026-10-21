@@ -3,7 +3,7 @@
 import { motion, useTransform, type MotionValue } from "motion/react";
 import type { ReactNode } from "react";
 import s from "@/app/landing.module.css";
-import Pinned from "./Pinned";
+import Pinned, { useReduced } from "./Pinned";
 import { EVIDENCE, GRAPH_NODES, MISSING, TECH, TRL_LEVELS } from "./data";
 
 const CX = 400;
@@ -20,36 +20,60 @@ function Edge({ p, n, x, y, label }: { p: MotionValue<number>; n: number; x: num
   const opacity = useTransform(p, [from + 0.08, from + 0.14], [0, 1]);
   return (
     <g>
-      <motion.line x1={CX} y1={CY} x2={x} y2={y} stroke="var(--blue)" strokeWidth="1" style={{ pathLength }} />
-      <motion.g style={{ opacity }}>
-        <circle cx={x} cy={y} r="5" fill="var(--blue)" />
+      <motion.line
+        x1={CX}
+        y1={CY}
+        x2={x}
+        y2={y}
+        stroke="var(--blue)"
+        strokeWidth="1.5"
+        strokeOpacity="0.8"
+        style={{ pathLength }}
+      />
+      <motion.g
+        style={{ opacity }}
+      >
+        <circle cx={x} cy={y} r="10" fill="rgba(255, 215, 0, 0.18)" />
+        <circle cx={x} cy={y} r="4.5" fill="var(--blue)" />
         <text x={x} y={y + (y < CY ? -14 : 24)} textAnchor="middle" className={s.svgLabel}>{label}</text>
       </motion.g>
     </g>
   );
 }
 
-// Graph draws (0–.45), collapses into its centre (.45–.6), and the dossier opens out of that point (.55–.75).
 function EvidenceDossier({ progress: p, pinned }: { progress: MotionValue<number>; pinned: boolean }) {
-  const graphScale = useTransform(p, [0.45, 0.6], [1, 0.15]);
-  const graphOpacity = useTransform(p, [0.5, 0.6], [1, 0]);
-  const docScale = useTransform(p, [0.55, 0.75], [0.3, 1]);
-  const docOpacity = useTransform(p, [0.55, 0.68], [0, 1]);
+  const graphScale = useTransform(p, [0.36, 0.54], [1, 0.15]);
+  const graphOpacity = useTransform(p, [0.42, 0.54], [1, 0]);
+  const docScale = useTransform(p, [0.42, 0.66], [0.3, 1]);
+  const docOpacity = useTransform(p, [0.42, 0.58], [0, 1]);
 
   return (
     <div className={s.evidence} data-pinned={pinned ? "" : undefined}>
-      <motion.div className={s.graph} style={pinned ? { scale: graphScale, opacity: graphOpacity } : undefined}>
+      <motion.div
+        className={s.graph}
+        style={pinned ? { scale: graphScale, opacity: graphOpacity } : undefined}
+      >
         <svg viewBox="0 0 800 470" role="img" aria-label={`Technology connected to: ${GRAPH_NODES.join(", ")}`}>
+          <defs>
+            <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(255, 215, 0, 0.35)" />
+              <stop offset="100%" stopColor="rgba(255, 215, 0, 0)" />
+            </radialGradient>
+          </defs>
+          <circle cx={CX} cy={CY} r="65" fill="url(#centerGlow)" />
           {nodes.map((nd, n) => (
             <Edge key={nd.label} p={p} n={n} {...nd} />
           ))}
-          <circle cx={CX} cy={CY} r="34" fill="#fff" stroke="var(--ink)" strokeWidth="1.5" />
-          <circle cx={CX} cy={CY} r="40" fill="none" stroke="var(--orange)" strokeWidth="2" />
-          <text x={CX} y={CY + 4} textAnchor="middle" className={s.svgStrong}>Technology</text>
+          <circle cx={CX} cy={CY} r="34" fill="#070d28" stroke="var(--blue)" strokeWidth="1.5" />
+          <circle cx={CX} cy={CY} r="42" fill="none" stroke="var(--orange)" strokeWidth="1.5" strokeDasharray="3 3" />
+          <text x={CX} y={CY + 5} textAnchor="middle" fill="#f4f7ff" className={s.svgStrong}>Technology</text>
         </svg>
       </motion.div>
 
-      <motion.div className={s.dossierWrap} style={pinned ? { scale: docScale, opacity: docOpacity } : undefined}>
+      <motion.div
+        className={s.dossierWrap}
+        style={pinned ? { scale: docScale, opacity: docOpacity } : undefined}
+      >
         <Dossier />
       </motion.div>
     </div>
@@ -132,12 +156,20 @@ function Dossier() {
 
 // Server-rendered heading goes in as children; the render prop stays on the client.
 export default function EvidenceDossierScene({ children }: { children: ReactNode }) {
+  const reduce = useReduced();
   return (
-    <Pinned length="280vh" label="Evidence graph and dossier">
+    <Pinned length="220vh" label="Evidence graph and dossier">
       {(p, pinned) => (
         <>
           {children}
-          <EvidenceDossier progress={p} pinned={pinned} />
+          <motion.div
+            initial={!pinned && !reduce ? { opacity: 0, y: 18, scale: 0.985 } : false}
+            whileInView={!pinned && !reduce ? { opacity: 1, y: 0, scale: 1 } : undefined}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: reduce ? 0 : 0.52, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <EvidenceDossier progress={p} pinned={pinned} />
+          </motion.div>
         </>
       )}
     </Pinned>

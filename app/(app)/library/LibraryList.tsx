@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LibraryRow } from "@/lib/types";
 import { Empty } from "@/app/(app)/ui";
 import { VoteControl } from "./VoteControl";
+import { Stagger, StaggerItem } from "@/app/ui/motion/Stagger";
 
 export function LibraryList({ rows, filtered }: { rows: LibraryRow[]; filtered: boolean }) {
   const router = useRouter();
@@ -42,9 +43,9 @@ export function LibraryList({ rows, filtered }: { rows: LibraryRow[]; filtered: 
       <p className="mb-2 text-[13px] text-ink-2 fade-up">
         {rows.length} {rows.length === 1 ? "technology" : "technologies"}. Use <kbd className="font-mono">j</kbd>/<kbd className="font-mono">k</kbd> to move, Enter to open.
       </p>
-      <ol className="panel divide-y divide-rule">
+      <Stagger as="ol" className="panel divide-y divide-rule">
         {rows.map((r, i) => (
-          <li key={r.id} className={`stagger-item flex gap-4 px-3 py-4 sm:gap-6 sm:px-5 ${focus === i ? "bg-sunken/60" : ""}`}>
+          <StaggerItem as="li" key={r.id} className={`flex gap-4 px-3 py-4 sm:gap-6 sm:px-5 ${focus === i ? "bg-sunken/60" : ""}`}>
             <VoteControl technologyId={r.id} initial={r} />
             <div className="min-w-0 flex-1">
               <Link
@@ -75,9 +76,9 @@ export function LibraryList({ rows, filtered }: { rows: LibraryRow[]; filtered: 
               )}
               {r.verified && <span className="text-ink-2">Identity confirmed</span>}
             </div>
-          </li>
+          </StaggerItem>
         ))}
-      </ol>
+      </Stagger>
     </>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "motion/react";
 import s from "@/app/landing.module.css";
-import Pinned from "./Pinned";
+import Pinned, { useReduced } from "./Pinned";
 import { EVIDENCE, MISSING, TECH, TRL_LEVELS } from "./data";
 
 // Fades/lifts its child in over one slice of the scene's scroll progress.
@@ -90,12 +90,20 @@ function Trl({ progress: p }: { progress: MotionValue<number> }) {
 
 // Server-rendered heading goes in as children; the render prop stays on the client.
 export default function TrlScene({ children }: { children: ReactNode }) {
+  const reduce = useReduced();
   return (
     <Pinned length="260vh" label="Technology readiness level">
       {(p, pinned) => (
         <>
           {children}
-          <Trl key={String(pinned)} progress={p} />
+          <motion.div
+            initial={!pinned && !reduce ? { opacity: 0, y: 18, scale: 0.985 } : false}
+            whileInView={!pinned && !reduce ? { opacity: 1, y: 0, scale: 1 } : undefined}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: reduce ? 0 : 0.48, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Trl key={String(pinned)} progress={p} />
+          </motion.div>
         </>
       )}
     </Pinned>

@@ -10,7 +10,6 @@ import { BrandLink } from "@/app/_brand/Logo";
 import { Avatar } from "@/app/_profile/Avatar";
 import { TierBadge, tierLabel } from "@/app/_profile/Credibility";
 import { Inbox } from "@/app/_community/Inbox";
-import { ScrollReveals } from "./ScrollReveals";
 
 const NAV: Record<Me["role"], { href: string; label: string }[]> = {
   admin: [
@@ -178,7 +177,6 @@ export function Shell({ me, children }: { me: Me; children: React.ReactNode }) {
   return (
     <div className={`min-h-screen lg:grid motion-safe:transition-[grid-template-columns] motion-safe:duration-200 motion-safe:ease-out ${
       rail.open ? "lg:grid-cols-[232px_minmax(0,1fr)]" : "lg:grid-cols-[0px_minmax(0,1fr)]"}`}>
-      <ScrollReveals />
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 btn">
         Skip to content
       </a>
@@ -212,7 +210,7 @@ export function Shell({ me, children }: { me: Me; children: React.ReactNode }) {
         </button>
       )}
       {/* mobile bar: native disclosure, no JS menu state */}
-      <details className="group border-b border-rule bg-surface/85 backdrop-blur-md lg:hidden">
+      <details className="mobile-nav group border-b border-rule bg-surface/85 backdrop-blur-md lg:hidden">
         <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3">
           <BrandLink size={24} tile />
           <span className="text-[14px] text-ink-2">
@@ -220,7 +218,7 @@ export function Shell({ me, children }: { me: Me; children: React.ReactNode }) {
             <span className="hidden group-open:inline">Close</span>
           </span>
         </summary>
-        <div className="flex flex-col gap-4 px-2 pb-3">
+        <div className="mobile-nav-content flex flex-col gap-4 px-2 pb-3">
           {renderNav("mobile")}
           {footer}
         </div>

@@ -5,6 +5,7 @@ import { LayoutGroup, motion, useInView } from "motion/react";
 import s from "@/app/landing.module.css";
 import { useReduced } from "./Pinned";
 import { EVIDENCE, MISSING, TECH } from "./data";
+import { SpotlightCard } from "@/app/SpotlightCard";
 
 const ROWS = 5;
 const COLS = 24;
@@ -56,21 +57,27 @@ export default function Hero() {
 
         {open && (
           <motion.article layoutId="tech" transition={morph} className={s.profile} aria-label="Illustrative technology profile">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: reduce ? 0 : 0.45, duration: 0.4 }}
+            <SpotlightCard
+              spotlightColor="rgba(255, 215, 0, 0.22)"
+              spotlightRadius={320}
+              className="rounded-[inherit]"
             >
-              <p className={s.kicker}>Technology profile · Illustrative example</p>
-              <h2 className={s.profileName}>{TECH.name}</h2>
-              <p className={s.ref}>{TECH.ref}</p>
-              <dl className={s.facts}>
-                <div><dt>Readiness</dt><dd>TRL {TECH.trl} · validated in the lab</dd></div>
-                <div><dt>Evidence</dt><dd>{EVIDENCE.length} sources linked</dd></div>
-                <div><dt>Open gaps</dt><dd>{MISSING.length} to investigate</dd></div>
-                <div><dt>Next</dt><dd>Reviewer to confirm TRL</dd></div>
-              </dl>
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: reduce ? 0 : 0.45, duration: 0.4 }}
+              >
+                <p className={s.kicker}>Technology profile · Illustrative example</p>
+                <h2 className={s.profileName}>{TECH.name}</h2>
+                <p className={s.ref}>{TECH.ref}</p>
+                <dl className={s.facts}>
+                  <div><dt>Readiness</dt><dd>TRL {TECH.trl} · validated in the lab</dd></div>
+                  <div><dt>Evidence</dt><dd>{EVIDENCE.length} sources linked</dd></div>
+                  <div><dt>Open gaps</dt><dd>{MISSING.length} to investigate</dd></div>
+                  <div><dt>Next</dt><dd>Reviewer to confirm TRL</dd></div>
+                </dl>
+              </motion.div>
+            </SpotlightCard>
           </motion.article>
         )}
       </div>

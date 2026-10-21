@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, type MotionValue } from "motion/react";
 import s from "@/app/landing.module.css";
-import Pinned from "./Pinned";
+import Pinned, { useReduced } from "./Pinned";
 import { EVIDENCE, MISSING, PIPELINE, TECH } from "./data";
 
 const CAPTION = [
@@ -16,21 +16,26 @@ const CAPTION = [
 ];
 const TAGS = ["Performance", "Stability", "IP scope"];
 
-const Row = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <motion.li
-    layout
-    className={className}
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.35 }}
-  >
-    {children}
-  </motion.li>
-);
+function Row({ children, className, reduce }: { children: ReactNode; className?: string; reduce: boolean }) {
+  if (reduce) return <li className={className}>{children}</li>;
+
+  return (
+    <motion.li
+      layout
+      className={className}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.35 }}
+    >
+      {children}
+    </motion.li>
+  );
+}
 
 // One record, six states. Scroll advances the stage; the card is never swapped, only extended.
 function Pipeline({ progress }: { progress: MotionValue<number> }) {
+  const reduce = useReduced();
   const at = (v: number) => Math.min(PIPELINE.length - 1, Math.floor(v * PIPELINE.length));
   const [stage, setStage] = useState(() => at(progress.get()));
   useMotionValueEvent(progress, "change", (v) => setStage(at(v)));
@@ -49,8 +54,8 @@ function Pipeline({ progress }: { progress: MotionValue<number> }) {
       </div>
       <p className={s.caption}>{CAPTION[stage]}</p>
 
-      <motion.article layout className={s.record} data-dossier={stage === 5 ? "" : undefined} transition={{ duration: 0.4 }}>
-        <motion.header layout className={s.recordHead}>
+      <motion.article layout={!reduce} className={s.record} data-dossier={stage === 5 ? "" : undefined} transition={{ duration: reduce ? 0 : 0.4 }}>
+        <motion.header layout={!reduce} className={s.recordHead}>
           <div>
             <p className={s.kicker}>{stage === 5 ? "Technology dossier · draft for review" : "Technology record"}</p>
             <h3 className={s.recordName}>{TECH.short}</h3>
@@ -59,9 +64,10 @@ function Pipeline({ progress }: { progress: MotionValue<number> }) {
             {stage >= 3 && (
               <motion.span
                 className={s.trlBadge}
-                initial={{ opacity: 0, scale: 0.6 }}
+                initial={reduce ? false : { opacity: 0, scale: 0.6 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : undefined }}
               >
                 TRL {TECH.trl}
               </motion.span>
@@ -73,7 +79,7 @@ function Pipeline({ progress }: { progress: MotionValue<number> }) {
           <AnimatePresence>
             {stage >= 1 &&
               EVIDENCE.map((e, n) => (
-                <Row key={e.label} className={s.have}>
+                <Row key={e.label} className={s.have} reduce={reduce}>
                   <span>{e.label}</span>
                   <span className={s.src}>
                     {stage >= 2 ? <em className={s.tag}>{TAGS[n]}</em> : null} {e.source}
@@ -82,7 +88,7 @@ function Pipeline({ progress }: { progress: MotionValue<number> }) {
               ))}
             {stage >= 4 &&
               MISSING.map((m) => (
-                <Row key={m} className={s.gap}>
+                <Row key={m} className={s.gap} reduce={reduce}>
                   <span>{m}</span>
                   <span className={s.src}>Missing</span>
                 </Row>
@@ -92,7 +98,7 @@ function Pipeline({ progress }: { progress: MotionValue<number> }) {
 
         <AnimatePresence>
           {stage === 5 && (
-            <motion.footer className={s.recordFoot} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.footer className={s.recordFoot} initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduce ? 0 : undefined }}>
               Ready for reviewer · every line links to its source
             </motion.footer>
           )}
@@ -104,13 +110,20 @@ function Pipeline({ progress }: { progress: MotionValue<number> }) {
 
 // Server-rendered heading goes in as children; the render prop stays on the client.
 export default function PipelineScene({ children }: { children: ReactNode }) {
+  const reduce = useReduced();
   return (
     <Pinned length="200vh" label="The pipeline">
       {(p, pinned) => (
         <>
           {children}
-          {/* remount when pinning toggles so the stage re-reads the new progress source */}
-          <Pipeline key={String(pinned)} progress={p} />
+          <motion.div
+            initial={!pinned && !reduce ? { opacity: 0, y: 18, scale: 0.985 } : false}
+            whileInView={!pinned && !reduce ? { opacity: 1, y: 0, scale: 1 } : undefined}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: reduce ? 0 : 0.48, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Pipeline key={String(pinned)} progress={p} />
+          </motion.div>
         </>
       )}
     </Pinned>
